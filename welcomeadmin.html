@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome Page</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.6/axios.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #F3F4F6; /* Light background */
+            color: #333;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #1E40AF; /* Modern blue */
+            margin-bottom: 20px;
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            margin-bottom: 30px;
+        }
+
+        .header-container h1 {
+            flex: 1;
+        }
+
+        .header-container span,
+        .header-container button {
+            margin-left: 20px;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            margin: 30px 0 10px;
+            color: #1E40AF;
+            text-align: center;
+            width: 100%;
+        }
+
+        #all-courses {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .course-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-align: center;
+        }
+
+        .course-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .course-card img {
+            max-width: 100%;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .course-title {
+            font-size: 1.5rem;
+            color: #1E40AF;
+            margin-bottom: 10px;
+        }
+
+        .course-description {
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        .course-price {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2563EB;
+        }
+
+        button {
+            padding: 10px 15px;
+            font-size: 1rem;
+            background-color: #1E40AF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #2563EB;
+        }
+
+        a {
+            text-decoration: none;
+            color: white;
+            background-color: #1E40AF;
+            padding: 10px 15px;
+            border-radius: 5px;
+        }
+
+        a:hover {
+            background-color: #2563EB;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header-container">
+        <h1 id="welcome"></h1>
+        <span>
+            <a href="bookPublish.html">Publish a new book</a>
+        </span>
+        <button onclick="logout()">LOGOUT</button>
+    </div>
+
+    <!-- All Courses Section -->
+    <div class="section-title">books added by You</div>
+    <div id="all-books"></div>
+
+    <script>
+        function logout() {
+            localStorage.removeItem("token");
+            window.location.href = "landing_page.html";
+        }
+
+        async function fetchname() {
+            try {
+                const response = await axios.get("http://localhost:5000/admin/name", {
+                    headers: {
+                        token: localStorage.getItem("token")
+                    }
+                });
+                const firstname = response.data.firstname;
+                const lastname = response.data.lastname;
+                document.getElementById("welcome").textContent = "Welcome, " + firstname + " " + lastname;
+            } catch (error) {
+                console.error("Error fetching name:", error);
+            }
+        }
+
+        async function getallcourses() {
+            const parEl = document.getElementById("all-books");
+            parEl.innerHTML = ""; // Clear any previous content
+            try {
+                const response = await axios.get("http://localhost:5000/admin/book/bulk", {
+                    headers: {
+                        token: localStorage.getItem("token")
+                    }
+                });
+                const books = response.data.books;
+
+                books.forEach(book => {
+                    const { title, author,isbn,category, price, status, imageUrl, _id } = book;
+
+                    const divEl = document.createElement("div");
+                    divEl.classList.add("course-card");
+
+                    const imgEl = document.createElement("img");
+                    imgEl.src = imageUrl;
+                    divEl.appendChild(imgEl);
+
+                    const titleEl = document.createElement("div");
+                    titleEl.classList.add("book-title");
+                    titleEl.textContent = title;
+                    divEl.appendChild(titleEl);
+
+                    const isbnel=document.createElement("div");
+                    isbnel.classList.add("isbn");
+                    isbnel.textcontent=isbn;
+                    divEl.appendChild(isbnel);
+
+                    const catel=document.createElement("div");
+                    catel.classList.add("category");
+                    catel.textcontent=category;
+                    divEl.appendChild(catel);
+
+                    const descEl = document.createElement("div");
+                    descEl.classList.add("book-description");
+                    descEl.textContent =author;
+                    divEl.appendChild(descEl);
+                    
+                    const statusel=document.createElement("div");
+                    statusel.classList.add("status");
+                    statusel.textcontent=status;
+                    divEl.appendChild(statusel);
+                    
+                    const priceEl = document.createElement("div");
+                    priceEl.classList.add("book-price");
+                    priceEl.textContent = "Rs " + price;
+                    divEl.appendChild(priceEl);
+                    
+                    parEl.appendChild(divEl);
+                });
+            } catch (error) {
+                console.error('Error fetching books:', error);
+            }
+        }
+
+        fetchname();
+        getallcourses();
+    </script>
+</body>
+
+</html>
+
